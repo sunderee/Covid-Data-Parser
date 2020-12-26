@@ -1,7 +1,7 @@
 FROM python:3.8
 
-ENV COUNTRY ""
-ENV DATA 1
+ENV COUNTRY "Switzerland"
+ENV DATA "recovered"
 
 WORKDIR /
 
