@@ -1,23 +1,26 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from os import getcwd
 from os.path import exists
+from typing import Union, List, Dict, Any, Optional, Hashable, Tuple
 
-from pandas import read_csv, DataFrame
+from pandas import read_csv, DataFrame, Series, Index
+from pandas.core.arrays import ExtensionArray
+from pandas.io.parsers import TextFileReader
 
 
-def __merge_duplicate_rows(csv_file_path: str, by_column: str, new_csv_file_path: str):
-    csv_file = read_csv(csv_file_path)
-    new_data = []
-    duplicates = {}
+def __merge_duplicate_rows(csv_file_path: str, by_column: str, new_csv_file_path: str) -> None:
+    csv_file: Union[TextFileReader, Series, DataFrame, None] = read_csv(csv_file_path)
+    new_data: List[list] = []
+    duplicates: Dict[Any, Union[List[Optional[Hashable]], List[int]]] = {}
     for item in [item for item in csv_file[by_column].iteritems()]:
         if item[1] not in duplicates.keys():
             duplicates[item[1]] = [item[0]]
         else:
             duplicates[item[1]].append(item[0])
     for key in duplicates.keys():
-        tmp_values = {}
+        tmp_values: Dict[int, list] = {}
         for index, value in enumerate(duplicates.get(key)):
-            row_values = [item for item in csv_file.iloc[index].items()][1:]
+            row_values: List[Any] = [item for item in csv_file.iloc[index].items()][1:]
             tmp_values[index] = list(map(lambda val: val[1], row_values))
         duplicates[key] = [sum(x) for x in zip(*list(tmp_values.values()))]
 
@@ -26,52 +29,52 @@ def __merge_duplicate_rows(csv_file_path: str, by_column: str, new_csv_file_path
     DataFrame(new_data, columns=csv_file.columns).to_csv(new_csv_file_path, index=False)
 
 
-def confirmed_data_by_country(country: str):
+def confirmed_data_by_country(country: str) -> Optional[Tuple[Any, Union[ExtensionArray, None, Index]]]:
     try:
-        file = getcwd() + '/data/confirmed.csv'
-        file_clean = getcwd() + '/data/confirmed-clean.csv'
+        file: str = getcwd() + '/data/confirmed.csv'
+        file_clean: str = getcwd() + '/data/confirmed-clean.csv'
         if not exists(file_clean):
             __merge_duplicate_rows(csv_file_path=file,
                                    by_column='Country',
                                    new_csv_file_path=file_clean)
-        confirmed = read_csv(file_clean)
-        countries = list(map(lambda count: count[1], [c for c in confirmed['Country'].iteritems()]))
-        country_index = countries.index(country)
+        confirmed: Union[TextFileReader, Series, DataFrame, None] = read_csv(file_clean)
+        countries: List[str] = list(map(lambda count: count[1], [c for c in confirmed['Country'].iteritems()]))
+        country_index: int = countries.index(country)
         return confirmed.loc[country_index], confirmed.columns[1:]
     except ValueError:
         print('Country does not exist')
         return None
 
 
-def deaths_data_by_country(country: str):
+def deaths_data_by_country(country: str) -> Optional[Tuple[Any, Union[ExtensionArray, None, Index]]]:
     try:
-        file = getcwd() + '/data/deaths.csv'
-        file_clean = getcwd() + '/data/deaths-clean.csv'
+        file: str = getcwd() + '/data/deaths.csv'
+        file_clean: str = getcwd() + '/data/deaths-clean.csv'
         if not exists(file_clean):
             __merge_duplicate_rows(csv_file_path=file,
                                    by_column='Country',
                                    new_csv_file_path=file_clean)
-        confirmed = read_csv(file_clean)
-        countries = list(map(lambda count: count[1], [c for c in confirmed['Country'].iteritems()]))
-        country_index = countries.index(country)
-        return confirmed.loc[country_index], confirmed.columns[1:]
+        deaths: Union[TextFileReader, Series, DataFrame, None] = read_csv(file_clean)
+        countries: List[str] = list(map(lambda count: count[1], [c for c in deaths['Country'].iteritems()]))
+        country_index: int = countries.index(country)
+        return deaths.loc[country_index], deaths.columns[1:]
     except ValueError:
         print('Country does not exist')
         return None
 
 
-def recovered_data_by_country(country: str):
+def recovered_data_by_country(country: str) -> Optional[Tuple[Any, Union[ExtensionArray, None, Index]]]:
     try:
-        file = getcwd() + '/data/recovered.csv'
-        file_clean = getcwd() + '/data/recovered-clean.csv'
+        file: str = getcwd() + '/data/recovered.csv'
+        file_clean: str = getcwd() + '/data/recovered-clean.csv'
         if not exists(file_clean):
             __merge_duplicate_rows(csv_file_path=file,
                                    by_column='Country',
                                    new_csv_file_path=file_clean)
-        confirmed = read_csv(file_clean)
-        countries = list(map(lambda count: count[1], [c for c in confirmed['Country'].iteritems()]))
-        country_index = countries.index(country)
-        return confirmed.loc[country_index], confirmed.columns[1:]
+        recovered: Union[TextFileReader, Series, DataFrame, None] = read_csv(file_clean)
+        countries: List[str] = list(map(lambda count: count[1], [c for c in recovered['Country'].iteritems()]))
+        country_index: int = countries.index(country)
+        return recovered.loc[country_index], recovered.columns[1:]
     except ValueError:
         print('Country does not exist')
         return None
@@ -82,7 +85,7 @@ parser.add_argument('--country',
                     help='Country for which you wish to receive data')
 parser.add_argument('--data',
                     help='Data you wanna receive, possible arguments are "confirmed", "deaths" and "recovered"')
-arguments = parser.parse_args()
+arguments: Namespace = parser.parse_args()
 
 if arguments.country is not None and arguments.data is not None:
     if arguments.data == 'confirmed':
