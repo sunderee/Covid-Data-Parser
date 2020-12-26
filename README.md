@@ -54,3 +54,12 @@ Name: 155, Length: 321, dtype: object, Index(['1/22/20', '1/23/20', '1/24/20', '
        '12/3/20', '12/4/20', '12/5/20', '12/6/20'],
       dtype='object', length=320))
 ```
+
+Project is containerized with Docker as well (because why not). Build the image and run the container:
+
+```bash
+$ docker build -t img .
+$ docker run --name imgname \
+  -e COUNTRY="Slovenia" \
+  -e DATA="confirmed" img
+```
